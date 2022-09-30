@@ -93,8 +93,11 @@ def pp_calc(aim, speed, b, misses, c100, c50, used_mods = mods() ,combo = 0xFFFF
 		hd_bonus = 1.0 + 0.04*(12 - ar)
 	aim_value *= hd_bonus
 
-	if used_mods.fl:
-		aim_value *= 1.0 + 0.35 * min(1.0,total_hits / 200.0) + ((0.3 * min(1,(total_hits - 200) / 300.0) + ((total_hits - 500) / 1200.0 if total_hits > 500 else 0)) if total_hits > 200 else 0)
+	hardSliders = b.NumSliders() * 0.15
+
+	if b.NumSliders() > 0:
+		_maxCombo = b.maxCombo
+		estimateEndsDropped = math.min(math.max(math.min((c100 + c50 + misses), _maxCombo - 
 
 	acc_bonus = 0.5 + acc / 2.0
 
@@ -139,14 +142,15 @@ def pp_calc(aim, speed, b, misses, c100, c50, used_mods = mods() ,combo = 0xFFFF
 		acc_value *= 1.02
 
 	res.acc_pp = acc_value
-
-	final_multiplier = 1.12
+        
+	final_multiplier = 1.14
 
 	if used_mods.nf:
-		final_multiplier *= 0.90
+		final_multiplier *= math.max(0.9, 1.0 - 0.02 * numMiss)
 
 	if used_mods.so:
-		final_multiplier *= 0.95
+		final_multiplier *= 1.0 - math.pow(b.NumSpinners() / total_hits, 0.85)
+		
 	res.pp = math.pow(math.pow(aim_value,1.1) + math.pow(speed_value,1.1) + math.pow(acc_value, 1.1), 1.0 / 1.1) * final_multiplier
 	return res;
 
@@ -154,7 +158,7 @@ def pp_calc_acc(aim, speed, b, acc_percent, used_mods = mods(), combo = 0xFFFF, 
 	misses = min(b.num_objects,misses)
 
 	max300 = (b.num_objects - misses)
-
+	
 	acc_percent = max(0.0, min(acc_calc(max300, 0, 0, misses) * 100.0, acc_percent))
 
 	c50 = 0
